@@ -1,0 +1,272 @@
+@model InterviewTest.Models.EmployeeModel
+
+<div>
+    <h1>Create Employee</h1>
+    <h3>@ViewBag.Message</h3>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <form>
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Name)
+                <input id="Name" name="Name" class="form-control" />
+                <span id="NameValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.DOB)
+                <input type="date" name="DOB" id="DOB" class="form-control">
+                <span id="DOBValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Gender)
+                <select id="Gender" name="Gender" class="form-control">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                </select>
+                <span id="GenderValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Nationality)
+                <select id="Nationality" name="Nationality" class="form-control">
+                    <option value="Malaysia">Malaysia</option>
+                    <option value="Singapore">Singapore</option>
+                </select>
+                <span id="NationalityValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.IC)
+                <input id="IC" name="IC" class="form-control" />
+                <span id="ICValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.EmpNo)
+                <input id="EmpNo" name="EmpNo" class="form-control" />
+                <span id="EmpNoValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.HiredDate)
+                <input type="date" id="HiredDate" name="HiredDate" class="form-control" />
+                <span id="HiredDateValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Department)
+                <select id="Department" name="Department" class="form-control">
+                </select>
+                <span id="DepartmentValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Occupation)
+                <select id="Occupation" name="Occupation" class="form-control" disabled>
+                </select>
+                <span id="OccupationValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Category)
+                @Html.DropDownList("Category", (IEnumerable<SelectListItem>)ViewBag.Category, null, new { @class
+                ="form-control", @id = "Category" })
+                <span id="CategoryValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section scripts {
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        var allCodes = [];
+
+        // get all the codes
+        $.ajax({
+            url: '/Code/GetAllCodes',
+            type: 'GET',
+            @* dataType: 'json', *@
+            success: function (data) {
+                allCodes = data;
+                console.log('allCodes', allCodes);
+
+                // filter allCodes to get all the departments
+                let departments = allCodes.filter(function (code) {
+                    return code.Category == 'Department';
+                });
+                $('#Department').empty();
+                $.each(departments, function (index, value) {
+                    $('#Department').append('<option value="' + value.Name + '">' + value.Name + '</option>');
+                });
+
+                // filter allCodes to get all the occupations and LinkToCode is same with the department Name
+                let occupations = allCodes.filter(function (code) {
+                    return code.Category == 'Occupation' && code.LinkToCode == $('#Department').val();
+                });
+                $('#Occupation').empty();
+                $.each(occupations, function (index, value) {
+                    $('#Occupation').append('<option value="' + value.Name + '">' + value.Name + '</option>');
+                });
+                $('#Occupation').removeAttr('disabled');
+            },
+            error: function (xhr, status, error) {
+                console.log(error);
+            }
+        });
+
+        
+        // listen to Department onChange if it is changed to Occupation
+        $('#Department').change(function () {
+            var selectedDepartment = $('#Department').val();
+            console.log('selectedDepartment', selectedDepartment);
+            var selectedOccupation = [];
+            $.each(allCodes, function (index, value) {
+                if (value.LinkToCode == selectedDepartment) {
+                    selectedOccupation.push(value);
+                }
+            });
+            console.log('selectedOccupation', selectedOccupation);
+            $('#Occupation').empty();
+            $.each(selectedOccupation, function (index, value) {
+                $('#Occupation').append('<option value="' + value.Name + '">' + value.Name + '</option>');
+            });
+            $('#Occupation').removeAttr('disabled');
+        });
+                
+
+        // validate all input fields
+        $("#Name").blur(function () {
+            let name = $("#Name").val();
+            if (name == "") {
+                $("#NameValid").html("Name is required");
+            } else {
+                $("#NameValid").html("");
+            }
+        });
+
+        $("#DOB").blur(function () {
+            let dob = $("#DOB").val();
+            if (dob == "") {
+                $("#DOBValid").html("DOB is required");
+            } else {
+                $("#DOBValid").html("");
+            }
+        });
+
+        $("#IC").blur(function () {
+            let IC = $("#IC").val();
+            if (IC == "") {
+                $("#ICValid").html("IC is required");
+            } else {
+                $("#ICValid").html("");
+            }
+        })
+
+        $("#EmpNo").blur(function () {
+            let EmpNo = $("#EmpNo").val();
+            if (EmpNo == "") {
+                $("#EmpNoValid").html("EmpNo is required");
+            } else {
+                $("#EmpNoValid").html("");
+            }
+        })
+
+        $("#HiredDate").blur(function () {
+            let HiredDate = $("#HiredDate").val();
+            if (HiredDate == "") {
+                $("#HiredDateValid").html("HiredDate is required");
+            } else {
+                $("#HiredDateValid").html("");
+            }
+        });
+
+        // validate all input fields on submit
+        $('form').submit(function (e) {
+            e.preventDefault();
+
+            
+            console.log('e', e)
+            let test = $('form').serialize();
+            console.log('test', test)
+
+            let Name = $(`#Name`).val();
+            let DOB = $(`#DOB`).val();
+            let Gender = $(`#Gender`).val();
+            let Nationality = $(`#Nationality`).val();
+            let IC = $(`#IC`).val();
+
+            let EmpNo = $(`#EmpNo`).val();
+            let HiredDate = $(`#HiredDate`).val();
+            let Department = $(`#Department`).val();
+            let Occupation = $(`#Occupation`).val();
+            let Category = $(`#Category`).val();
+
+            // print all values
+            console.table({
+                Name, DOB, Gender,
+                Nationality, IC, EmpNo, HiredDate, Department, Occupation, Category
+            });
+
+            // validate
+            if (Name == '') {
+                alert('Enter your name')
+                return;
+            }
+            if (DOB == '') {
+                alert('Enter your DOB')
+                return;
+            }
+            if (IC == '') {
+                alert('Enter your IC')
+                return;
+            }
+            if (EmpNo == '') {
+                alert('Enter your EmpNo')
+                return;
+            }
+            if (HiredDate == '') {
+                alert('Enter your HiredDate')
+                return;
+            }
+            if (Department == null) {
+                alert('Enter your Department')
+                return;
+            }
+            if (Occupation == null) {
+                alert('Enter your Occupation')
+                return;
+            }
+            if (Category == null) {
+                alert('Enter your Category')
+                return;
+            }
+
+            // submit form
+            $.ajax({
+                url: '/Employee/CreateEmployee',
+                type: 'POST',
+                data: $('form').serialize(),
+                success: function (data) {
+                    alert(data);
+                    window.location.href = '/Employee/Index';
+                },
+            });
+        })
+
+    });
+
+</script>
+
+}

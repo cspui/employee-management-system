@@ -1,0 +1,199 @@
+@model InterviewTest.Models.CodeModel
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+<div>
+    <h1>Edit code</h1>
+    <h3>@Model.Name</h3>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <form>
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Name)
+                <input disabled id="Name" name="Name" class="form-control" value="@Model.Name" />
+                <input type="hidden" id="Name" name="Name" class="form-control" value="@Model.Name" />
+                <span id="NameValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Description)
+                <input name="Description" id="Description" class="form-control" value="@Model.Description">
+                <span id="DescriptionValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Active)
+                <select id="Active" name="Active" class="form-control" value="@Model.Active">
+                    <option value="T">True</option>
+                    <option value="F">False</option>
+                </select>
+                <span id="ActiveValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.Category)
+                <select id="Category" name="Category" class="form-control">
+                    <option value="Department">Department</option>
+                    <option value="Occupation">Occupation</option>
+                </select>
+                <span id="CategoryValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @Html.DisplayNameFor(model => model.LinkToCode)
+                <select id="LinkToCode" name="LinkToCode" class="form-control" disabled>
+                </select>
+                <span id="LinkToCodeValid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Edit" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section scripts {
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        var allCodes = [];
+
+        // get all the codes
+        $.ajax({
+            url: '/Code/GetAllCodes',
+            type: 'GET',
+            @* dataType: 'json', *@
+            success: function (data) {
+                allCodes = data;
+                console.log('allCodes', allCodes);
+
+                // restore the drop down list LinkToCode
+                if ("@Model.Category" == "Occupation") {
+                    $('#LinkToCode').empty();
+                    $('#LinkToCode').prop('disabled', false);
+                    $.each(allCodes, function (index, value) {
+                        if (value.Category == 'Department') {
+                            $('#LinkToCode').append('<option value="' + value.Name + '">' + value.Name + '</option>');
+                        }
+                    });
+                    $('#LinkToCode').val("@Model.LinkToCode");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log(error);
+            }
+        });
+
+    // restore the drop down list Category
+    $('#Category').val("@Model.Category");
+
+
+    // listen to Category onChange if it is changed to Occupation
+    $('#Category').change(function () {
+        // clear the selected value
+        $('#LinkToCode').val('');
+
+        if ($(this).val() == 'Occupation') {
+            $('#LinkToCode').empty();
+            $.each(allCodes, function (index, value) {
+                if (value.Category == 'Department') {
+                    $('#LinkToCode').append('<option value="' + value.Name + '">' + value.Name + '</option>');
+                }
+            });
+            $('#LinkToCode').prop('disabled', false);
+        }
+        else {
+            // empty the selected value and disabled the LinkToCode
+            $('#LinkToCode').empty();
+            $('#LinkToCode').prop('disabled', true);
+        }
+    });
+
+    // validate all input fields
+    $("#Name").blur(function () {
+        let Name = $("#Name").val();
+        if (Name == "") {
+            $("#NameValid").html("Name is required");
+        } else {
+            $("#NameValid").html("");
+        }
+    });
+
+    $("#Description").blur(function () {
+        let Description = $("#Description").val();
+        if (Description == "") {
+            $("#DescriptionValid").html("Description is required");
+        } else {
+            $("#DescriptionValid").html("");
+        }
+    });
+
+    // validate all input fields on submit
+    $('form').submit(function (e) {
+        e.preventDefault();
+
+
+        var form = $('#__AjaxAntiForgeryForm');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+
+        console.log('e', e)
+        let test = $('form').serialize();
+        console.log('test', test)
+
+        let Name = $(`#Name`).val();
+        let Description = $(`#Description`).val();
+        let Active = $(`#Active`).val();
+        let Category = $(`#Category`).val();
+        let LinkToCode = $(`#LinkToCode`).val();
+
+        // print all values
+        console.table({
+            Name, Description, Active
+        });
+
+        // validate
+        if (Name == '') {
+            alert('Enter your Name')
+            return;
+        }
+        if (Description == '') {
+            alert('Enter your Description')
+            return;
+        }
+        if (Active == null) {
+            alert('Enter your Active')
+            return;
+        }
+        if (Category == null) {
+            alert('Enter your Category')
+            return;
+        }
+        if (Category == 'Occupation' && LinkToCode == null) {
+            alert('Enter your LinkToCode')
+            return;
+        }
+
+        // submit form
+        $.ajax({
+            url: '/Code/EditCode',
+            type: 'POST',
+            data: $('form').serialize(),
+            success: function (data) {
+                alert(data);
+                window.location.href = '/Code/Index';
+            },
+        });
+    })
+
+        });
+
+</script>
+
+}
