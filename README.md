@@ -1,6 +1,6 @@
 # Employee Management System
 
-> An interview project to test for Structure, Functionality and Security coded using ASP.NET Framework, MVC and SQL in C#, Jquery and Razor HTML.
+> An interview project to test for Structure, Functionality and Security coded using ASP.NET Framework, MVC and SQL in C#, Jquery, AJAX and Razor HTML.
 
 ## Objective
 1. Employee Profile Page
